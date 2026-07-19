@@ -1,0 +1,59 @@
+{
+  "name": "sure-state",
+  "version": "0.1.0",
+  "description": "Client-server state synchronization for TypeScript apps — server is always the source of truth.",
+  "license": "MIT",
+  "author": "ShingWong",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ShingWong/sure-state"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./react-devtools": {
+      "types": "./dist/react-devtools.d.ts",
+      "import": "./dist/react-devtools.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit",
+    "security:check": "npx tsx scripts/security-check.ts",
+    "prepublishOnly": "npm run security:check && npm run build"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "zustand": "^4.5.0 || ^5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.17",
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0",
+    "zustand": "^5.0.0"
+  },
+  "keywords": [
+    "state-management",
+    "client-server",
+    "synchronization",
+    "zustand",
+    "websocket",
+    "optimistic-concurrency"
+  ]
+}
