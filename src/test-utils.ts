@@ -104,8 +104,6 @@ export function createMockApi<T extends MockEntity>(
     remove: async (id: string) => {
       await wait(delay)
       maybeFail(failRemove)
-      data = data.filter((d) => d.id === id)
-      // server confirms — actually remove
       data = data.filter((d) => d.id !== id)
     },
   }

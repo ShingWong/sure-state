@@ -32,6 +32,8 @@ export function createEntityStore<T extends { id: string }, TCreate = Partial<T>
     selectedId: null,
   }))
 
+  let fetchGen = 0
+
   function setLoading() {
     store.setState({ isLoading: true, error: null })
   }
@@ -46,11 +48,14 @@ export function createEntityStore<T extends { id: string }, TCreate = Partial<T>
 
   /** Replace the local items list with fresh data from the server. */
   async function fetch(): Promise<void> {
+    const gen = ++fetchGen
     setLoading()
     try {
       const items = await api.list()
+      if (gen !== fetchGen) return
       pushItems(items)
     } catch (err: any) {
+      if (gen !== fetchGen) return
       setError(err?.message ?? `Failed to fetch ${name}`)
       throw err
     }
@@ -85,7 +90,7 @@ export function createEntityStore<T extends { id: string }, TCreate = Partial<T>
         await fetch()
       }
 
-      onMutate?.({ kind: 'created', entity: created })
+      try { onMutate?.({ kind: 'created', entity: created }) } catch { /* swallow */ }
       return created
     } catch (err: any) {
       setError(err?.message ?? `Failed to create ${name}`)
@@ -107,7 +112,7 @@ export function createEntityStore<T extends { id: string }, TCreate = Partial<T>
         await fetch()
       }
 
-      onMutate?.({ kind: 'updated', entity: updated })
+      try { onMutate?.({ kind: 'updated', entity: updated }) } catch { /* swallow */ }
       return updated
     } catch (err: any) {
       setError(err?.message ?? `Failed to update ${name}`)
@@ -130,7 +135,7 @@ export function createEntityStore<T extends { id: string }, TCreate = Partial<T>
         await fetch()
       }
 
-      onMutate?.({ kind: 'deleted', id })
+      try { onMutate?.({ kind: 'deleted', id }) } catch { /* swallow */ }
     } catch (err: any) {
       setError(err?.message ?? `Failed to delete ${name}`)
       throw err
@@ -164,6 +169,8 @@ export function createEntityStore<T extends { id: string }, TCreate = Partial<T>
             selectedId:
               s.selectedId === entity.id ? null : s.selectedId,
           }
+        default:
+          return s
       }
     })
 

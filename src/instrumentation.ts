@@ -77,18 +77,31 @@ export function createMetricsCollector(): MetricsCollector {
     return sorted[Math.max(0, idx)]!
   }
 
+  function baseName(fullKey: string): string {
+    const braceIdx = fullKey.indexOf('{')
+    return braceIdx === -1 ? fullKey : fullKey.slice(0, braceIdx)
+  }
+
+  function labelString(labels: Record<string, string>): string {
+    const entries = Object.entries(labels)
+    if (entries.length === 0) return ''
+    return `{${entries.map(([k, v]) => `${k}="${v}"`).join(',')}}`
+  }
+
+  function metricLine(name: string, labels: Record<string, string>, value: string | number): string {
+    return `${name}${labelString(labels)} ${value}`
+  }
+
   function dump(): string {
     const lines: string[] = []
 
     // Counters
     for (const [k, val] of counters) {
       const labels = labelSets.get(k) ?? {}
-      const labelStr = Object.keys(labels).length > 0
-        ? ` ${Object.entries(labels).map(([k, v]) => `${k}="${v}"`).join(',')}`
-        : ''
-      lines.push(`# HELP ${k} Counter`)
-      lines.push(`# TYPE ${k} counter`)
-      lines.push(`${k}${labelStr} ${val}`)
+      const name = baseName(k)
+      lines.push(`# HELP ${name} Counter`)
+      lines.push(`# TYPE ${name} counter`)
+      lines.push(metricLine(name, labels, val))
     }
 
     // Histograms -> summary (p50, p90, p99, count)
@@ -96,28 +109,24 @@ export function createMetricsCollector(): MetricsCollector {
       if (vals.length === 0) continue
       const sorted = [...vals].sort((a, b) => a - b)
       const labels = labelSets.get(k) ?? {}
-      const labelStr = Object.keys(labels).length > 0
-        ? `,${Object.entries(labels).map(([k, v]) => `${k}="${v}"`).join(',')}`
-        : ''
+      const name = baseName(k) + '_duration_seconds'
 
-      lines.push(`# HELP ${k}_duration_seconds Operation duration`)
-      lines.push(`# TYPE ${k}_duration_seconds summary`)
-      lines.push(`${k}_duration_seconds_count${labelStr} ${vals.length}`)
-      lines.push(`${k}_duration_seconds_sum${labelStr} ${sorted.reduce((a, b) => a + b, 0)}`)
-      lines.push(`${k}_duration_seconds{quantile="0.5"${labelStr}} ${percentile(sorted, 50)}`)
-      lines.push(`${k}_duration_seconds{quantile="0.9"${labelStr}} ${percentile(sorted, 90)}`)
-      lines.push(`${k}_duration_seconds{quantile="0.99"${labelStr}} ${percentile(sorted, 99)}`)
+      lines.push(`# HELP ${name} Operation duration`)
+      lines.push(`# TYPE ${name} summary`)
+      lines.push(metricLine(name + '_count', labels, vals.length))
+      lines.push(metricLine(name + '_sum', labels, sorted.reduce((a, b) => a + b, 0)))
+      lines.push(metricLine(name, { ...labels, quantile: '0.5' }, percentile(sorted, 50)))
+      lines.push(metricLine(name, { ...labels, quantile: '0.9' }, percentile(sorted, 90)))
+      lines.push(metricLine(name, { ...labels, quantile: '0.99' }, percentile(sorted, 99)))
     }
 
     // Gauges
     for (const [k, val] of gauges) {
       const labels = labelSets.get(k) ?? {}
-      const labelStr = Object.keys(labels).length > 0
-        ? ` ${Object.entries(labels).map(([k, v]) => `${k}="${v}"`).join(',')}`
-        : ''
-      lines.push(`# HELP ${k} Gauge`)
-      lines.push(`# TYPE ${k} gauge`)
-      lines.push(`${k}${labelStr} ${val}`)
+      const name = baseName(k)
+      lines.push(`# HELP ${name} Gauge`)
+      lines.push(`# TYPE ${name} gauge`)
+      lines.push(metricLine(name, labels, val))
     }
 
     return lines.join('\n') + '\n'

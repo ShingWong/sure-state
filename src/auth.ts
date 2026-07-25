@@ -77,10 +77,11 @@ export function createTokenManager(options: TokenManagerOptions): TokenManager {
   } = options
 
   let refreshPromise: Promise<void> | null = null
+  let cancelled = false
   let statusListeners: Array<(status: 'valid' | 'refreshing' | 'expired') => void> = []
 
   function notify(status: 'valid' | 'refreshing' | 'expired') {
-    for (const cb of statusListeners) cb(status)
+    for (const cb of [...statusListeners]) cb(status)
   }
 
   async function getAccessToken(): Promise<string> {
@@ -104,9 +105,8 @@ export function createTokenManager(options: TokenManagerOptions): TokenManager {
     // Deduplicate concurrent refresh calls
     if (refreshPromise) return refreshPromise
 
-    notify('refreshing')
-
     refreshPromise = (async () => {
+      notify('refreshing')
       const pair = getTokens()
       if (!pair?.refreshToken) {
         clearTokens()
@@ -116,6 +116,7 @@ export function createTokenManager(options: TokenManagerOptions): TokenManager {
 
       try {
         const newTokens = await refresh(pair.refreshToken)
+        if (cancelled) return
         setTokens(newTokens)
         notify('valid')
       } catch {
@@ -133,6 +134,7 @@ export function createTokenManager(options: TokenManagerOptions): TokenManager {
   }
 
   function invalidate() {
+    cancelled = true
     clearTokens()
     notify('expired')
   }

@@ -80,19 +80,16 @@ export function createInspector(store: EntityStore<any, any, any> & { getState?:
   let logging = true
   const listeners = new Set<(action: ActionRecord) => void>()
 
-  function record(partial: Omit<ActionRecord, 'id' | 'timestamp' | 'durationMs'>) {
+  function record(partial: Omit<ActionRecord, 'id' | 'timestamp' | 'durationMs'>, start?: number) {
     if (!logging) return
 
-    const start = performance.now()
-    // Schedule the record for after the action completes
-    // (We record synchronously so the start time is accurate)
-    // Use queueMicrotask so `durationMs` captures the actual async time
+    const startTime = start ?? performance.now()
     queueMicrotask(() => {
       const entry: ActionRecord = {
         id: nextActionId(),
         ...partial,
         timestamp: Date.now(),
-        durationMs: Math.round(performance.now() - start),
+        durationMs: Math.round(performance.now() - startTime),
       }
 
       actions.push(entry)
@@ -141,46 +138,50 @@ export function createInspector(store: EntityStore<any, any, any> & { getState?:
   function patchStore() {
     const origFetch = store.fetch.bind(store)
     store.fetch = async () => {
+      const start = performance.now()
       try {
         await origFetch()
-        record({ kind: 'fetch', entityName: 'entity', success: true })
+        record({ kind: 'fetch', entityName: 'entity', success: true }, start)
       } catch (e: any) {
-        record({ kind: 'error', entityName: 'entity', success: false, detail: e?.message })
+        record({ kind: 'error', entityName: 'entity', success: false, detail: e?.message }, start)
         throw e
       }
     }
 
     const origCreate = store.create.bind(store)
     store.create = async (data: any) => {
+      const start = performance.now()
       try {
         const result = await origCreate(data)
-        record({ kind: 'create', entityName: 'entity', success: true, detail: JSON.stringify(data).slice(0, 200) })
+        record({ kind: 'create', entityName: 'entity', success: true, detail: JSON.stringify(data).slice(0, 200) }, start)
         return result
       } catch (e: any) {
-        record({ kind: 'error', entityName: 'entity', success: false, detail: e?.message })
+        record({ kind: 'error', entityName: 'entity', success: false, detail: e?.message }, start)
         throw e
       }
     }
 
     const origUpdate = store.update.bind(store)
     store.update = async (id: string, data: any) => {
+      const start = performance.now()
       try {
         const result = await origUpdate(id, data)
-        record({ kind: 'update', entityName: 'entity', success: true, detail: `id=${id}` })
+        record({ kind: 'update', entityName: 'entity', success: true, detail: `id=${id}` }, start)
         return result
       } catch (e: any) {
-        record({ kind: 'error', entityName: 'entity', success: false, detail: e?.message })
+        record({ kind: 'error', entityName: 'entity', success: false, detail: e?.message }, start)
         throw e
       }
     }
 
     const origDelete = store.delete.bind(store)
     store.delete = async (id: string) => {
+      const start = performance.now()
       try {
         await origDelete(id)
-        record({ kind: 'delete', entityName: 'entity', success: true, detail: `id=${id}` })
+        record({ kind: 'delete', entityName: 'entity', success: true, detail: `id=${id}` }, start)
       } catch (e: any) {
-        record({ kind: 'error', entityName: 'entity', success: false, detail: e?.message })
+        record({ kind: 'error', entityName: 'entity', success: false, detail: e?.message }, start)
         throw e
       }
     }

@@ -86,9 +86,9 @@ export function attachLogger(
       const result = await origCreate(data)
       log('create', JSON.stringify(data).slice(0, 100))
       return result
-    } catch {
+    } catch (e) {
       log('error', 'create')
-      throw data
+      throw e
     }
   }
 
@@ -98,9 +98,9 @@ export function attachLogger(
       const result = await origUpdate(id, data)
       log('update', `id=${id}`)
       return result
-    } catch {
+    } catch (e) {
       log('error', 'update')
-      throw data
+      throw e
     }
   }
 
@@ -109,9 +109,9 @@ export function attachLogger(
     try {
       await origDelete(id)
       log('delete', `id=${id}`)
-    } catch {
+    } catch (e) {
       log('error', 'delete')
-      throw id
+      throw e
     }
   }
 
