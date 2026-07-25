@@ -315,6 +315,67 @@ bus.on('sync', ({ status }) => updateConnectionIndicator(status))
 | `sync` | `{ status }` | WebSocket connection changes |
 | `push` | `PushEvent` | Server pushes an update |
 
+## Cookie store (client-side persistence)
+
+Persist UI state, preferences, and theme selections across page reloads — no server endpoint needed. Every cookie change emits an `action` event visible through the event bus and agent tools.
+
+```ts
+import { createCookieStore } from 'sure-state'
+
+const prefs = createCookieStore({
+  prefix: 'sure_',           // namespace your cookies
+  defaults: { theme: 'nord', language: 'en' },
+  expires: 365,              // days
+})
+
+prefs.get('theme')            // → 'nord' (from cookie or default)
+prefs.set('theme', 'dracula') // → sets document.cookie
+prefs.getAll()                // → { theme: 'dracula', language: 'en' }
+prefs.subscribe((key, value) => console.log('changed:', key, value))
+prefs.clear()                 // remove all prefixed cookies
+```
+
+### Sync entity store to cookies
+
+```ts
+import { createEntityStore, createCookieStore, syncToCookie } from 'sure-state'
+
+const store = createEntityStore({ name: 'preferences', api: { /* ... */ } })
+const cookies = createCookieStore({ prefix: 'sure_' })
+const stop = syncToCookie(store, cookies)
+
+// Every store mutation auto-syncs to cookies:
+await store.create({ id: 'theme', value: 'dracula' })
+// → cookie: sure_theme=dracula
+
+// Detach when done:
+stop()
+```
+
+### Cookie store API
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `get(key)` | `string \| null` | Read a cookie (or default) |
+| `set(key, value)` | `void` | Write a cookie |
+| `remove(key)` | `void` | Delete a cookie |
+| `getAll()` | `Record<string, string>` | All prefixed cookies + defaults |
+| `clear()` | `void` | Remove all prefixed cookies |
+| `subscribe(cb)` | `() => void` | Subscribe to changes |
+| `dump()` | `string` | Raw cookie string (for agent inspection) |
+
+### Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `prefix` | `''` | Cookie name prefix for namespacing |
+| `defaults` | `{}` | Fallback values when no cookie exists |
+| `expires` | `365` | Days until cookie expiry |
+| `path` | `'/'` | Cookie path |
+| `sameSite` | `'lax'` | SameSite policy |
+| `secure` | `false` | HTTPS-only |
+| `onChange` | — | Callback for any cookie change |
+
 ## Agent tools (MCP)
 
 AI coding assistants (OpenCode, Claude Desktop, Cursor) can inspect and reason about your application state in real time:

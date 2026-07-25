@@ -28,6 +28,7 @@ npm run lint      # tsc --noEmit
 | `createMetricsCollector`, `attachMetrics`, `attachOtelSpans` | `instrumentation.ts` | Prometheus metrics + OpenTelemetry spans |
 | `attachLogger` | `logger.ts` | Console-action logger |
 | `createMockApi`, `waitForStore`, `recordActions`, `createTestStore` | `test-utils.ts` | Test helpers |
+| `createCookieStore`, `syncToCookie` | `cookie-store.ts` | Cookie-backed key-value store for client-side persistence |
 | `createAgentTools` | `agent-tools.ts` | Build agent-inspectable tool sets (list_stores, get_store_state, get_action_history, dump_report, get_metrics) |
 | `createMcpServer` | `create-mcp-server.ts` | Lightweight MCP-over-stdio server (no SDK needed). Connect agents like OpenCode, Claude Desktop |
 | `InspectorPanel` | `react-devtools.tsx` | React debug panel component |
