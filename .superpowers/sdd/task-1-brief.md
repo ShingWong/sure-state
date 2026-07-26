@@ -1,3 +1,17 @@
+### Task 1: Auth Types (`sure-state/src/auth-types.ts`)
+
+**Files:**
+- Create: `/usr/local/devel/sure-state/src/auth-types.ts`
+- Test: (tested implicitly by Task 2-3)
+
+**Interfaces:**
+- Produces: `Identity`, `Session`, `AuthAdapter`, `AuthEvent`, `AuthEventPayload`, `SessionStore` types
+
+- [ ] **Step 1: Create auth-types.ts**
+
+Write the shared type definitions:
+
+```ts
 export interface Identity {
   id: string
   roles: string[]
@@ -43,5 +57,21 @@ export interface AuthAdapter {
   authenticate(token: string): Promise<Identity | null>
   can(identity: Identity, action: string, entity?: unknown): Promise<boolean>
   on: <E extends AuthEventType>(event: E, handler: AuthEventHandler<E>) => () => void
-  emit?: <E extends AuthEventType>(event: E, payload: AuthEventPayload[E]) => void
 }
+```
+
+- [ ] **Step 2: Build and verify**
+
+```bash
+cd /usr/local/devel/sure-state && npx tsc --noEmit
+```
+Expected: No errors.
+
+- [ ] **Step 3: Commit**
+
+```bash
+cd /usr/local/devel/sure-state && git add src/auth-types.ts && git commit -m "feat: add AuthAdapter, Identity, Session types"
+```
+
+---
+
