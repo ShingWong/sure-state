@@ -29,6 +29,9 @@ npm run lint      # tsc --noEmit
 | `attachLogger` | `logger.ts` | Console-action logger |
 | `createMockApi`, `waitForStore`, `recordActions`, `createTestStore` | `test-utils.ts` | Test helpers |
 | `createCookieStore`, `syncToCookie` | `cookie-store.ts` | Cookie-backed key-value store for client-side persistence |
+| `createSimpleAuth` | `auth-builtin.ts` | Zero-dep password authentication with scrypt, sessions, rate limiting |
+| `withAuth` | `auth-store.ts` | Entity store wrapper for auth policy enforcement |
+| `AuthAdapter`, `Identity`, `Session` | `auth-types.ts` | Auth interface types for pluggable providers |
 | `createAgentTools` | `agent-tools.ts` | Build agent-inspectable tool sets (list_stores, get_store_state, get_action_history, dump_report, get_metrics) |
 | `createMcpServer` | `create-mcp-server.ts` | Lightweight MCP-over-stdio server (no SDK needed). Connect agents like OpenCode, Claude Desktop |
 | `InspectorPanel` | `react-devtools.tsx` | React debug panel component |

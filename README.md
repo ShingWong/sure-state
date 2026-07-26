@@ -376,6 +376,62 @@ stop()
 | `secure` | `false` | HTTPS-only |
 | `onChange` | — | Callback for any cookie change |
 
+## Authentication (SimpleAuth)
+
+Zero-dependency password authentication for lightweight apps. Built on `crypto.scrypt` — no npm packages needed.
+
+```ts
+import { createSimpleAuth } from 'sure-state'
+
+const auth = createSimpleAuth({
+  passwordPolicy: { minLength: 8, requireUpper: true, requireDigit: true },
+  rateLimit: { maxAttempts: 5, windowMs: 60000, banMs: 300000 },
+})
+
+const session = await auth.register({ email: 'user@example.com', password: 'StrongPass1!' })
+const session = await auth.login({ email: 'user@example.com', password: 'StrongPass1!' })
+const identity = await auth.getSession(session.token)
+await auth.logout(session.token)
+```
+
+### AuthAdapter Interface
+
+For production apps, implement `AuthAdapter` with any auth library (Auth.js, Lucia, Clerk):
+
+```ts
+import type { AuthAdapter } from 'sure-state'
+
+const adapter: AuthAdapter = {
+  name: 'my-auth',
+  login: async (creds) => { /* delegate */ },
+  register: async (creds) => { /* delegate */ },
+  logout: async (token) => { /* delegate */ },
+  getSession: async (token) => { /* delegate */ },
+  authenticate: async (token) => { /* delegate */ },
+  can: async (identity, action, entity) => { /* policy check */ },
+  on: (event, handler) => { /* subscribe */ },
+}
+```
+
+### Policy Enforcement
+
+Wrap entity stores with `withAuth()` to enforce access control on every mutation:
+
+```ts
+const protectedStore = withAuth(store, auth, getIdentity)
+await protectedStore.create(data)  // checks can() before executing
+```
+
+### Audit Trail
+
+Auth events flow through the same event bus as store mutations:
+
+| Event | When |
+|-------|------|
+| `auth:login` | Successful login |
+| `auth:failed` | Failed login attempt |
+| `auth:denied` | Policy blocked mutation |
+
 ## Agent tools (MCP)
 
 AI coding assistants (OpenCode, Claude Desktop, Cursor) can inspect and reason about your application state in real time:
