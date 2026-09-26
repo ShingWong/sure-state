@@ -34,7 +34,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "tsc --noEmit",
-    "security:check": "npx tsx scripts/security-check.ts",
+    "check": "tsc --noEmit",
+    "security:check": "node scripts/security-check.mjs",
     "prepublishOnly": "npm run security:check && npm run build"
   },
   "peerDependencies": {
