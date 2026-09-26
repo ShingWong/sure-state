@@ -3,7 +3,7 @@
 **Client-server state synchronization for TypeScript apps — the server is always the source of truth.** Fetch from the server, mutate through the store, subscribe to real-time push via WebSocket, and inspect every action with built-in logging, metrics, and agent-inspectable tooling.
 
 ```ts
-import { createEntityStore } from 'sure-state'
+import { createEntityStore } from '@shing.wong/sure-state'
 
 interface Persona { id: string; name: string; description: string | null }
 
@@ -53,7 +53,7 @@ console.log(personaStore.isLoading)
 ## Installation
 
 ```bash
-npm install sure-state
+npm install @shing.wong/sure-state
 ```
 
 Peer dependencies:
@@ -66,7 +66,7 @@ npm install react                             # optional (for InspectorPanel)
 ## Quick start
 
 ```ts
-import { createEntityStore } from 'sure-state'
+import { createEntityStore } from '@shing.wong/sure-state'
 import { apiClient } from './your-api-client'
 
 interface Persona {
@@ -128,7 +128,7 @@ Slower per-mutation but guarantees consistency. Required for collaborative multi
 Attach a console logger to visualize every mutation with colored groups and before/after state:
 
 ```ts
-import { attachLogger } from 'sure-state'
+import { attachLogger } from '@shing.wong/sure-state'
 
 const detach = attachLogger(personaStore, { collapsed: true })
 // Every fetch/create/update/delete now logs:
@@ -152,7 +152,7 @@ Logger options:
 ### Prometheus metrics
 
 ```ts
-import { createEntityStore, createEventBus, createMetricsCollector, attachMetrics } from 'sure-state'
+import { createEntityStore, createEventBus, createMetricsCollector, attachMetrics } from '@shing.wong/sure-state'
 
 const bus = createEventBus()
 const store = createEntityStore({ name: 'persona', api, onSubscribe: (h) => bus.on('push', h) })
@@ -170,7 +170,7 @@ Outputs counters (`persona_fetch_total`, `persona_create_total`), latency histog
 ### OpenTelemetry
 
 ```ts
-import { attachOtelSpans } from 'sure-state'
+import { attachOtelSpans } from '@shing.wong/sure-state'
 
 attachOtelSpans(bus, 'persona')
 // Every store action generates an OTEL span with attributes:
@@ -182,7 +182,7 @@ attachOtelSpans(bus, 'persona')
 ### Action history
 
 ```ts
-import { createInspector } from 'sure-state'
+import { createInspector } from '@shing.wong/sure-state'
 
 const inspector = createInspector(personaStore)
 
@@ -210,7 +210,7 @@ const report = inspector.dump()
 ### React devtools panel
 
 ```ts
-import { InspectorPanel } from 'sure-state/react-devtools'
+import { InspectorPanel } from '@shing.wong/sure-state/react-devtools'
 
 function DebugDrawer() {
   return (
@@ -225,7 +225,7 @@ function DebugDrawer() {
 ## Real-time sync (WebSocket)
 
 ```ts
-import { createEntityStore, createWebSocketClient } from 'sure-state'
+import { createEntityStore, createWebSocketClient } from '@shing.wong/sure-state'
 
 const ws = createWebSocketClient({
   url: 'wss://api.example.com/ws',
@@ -250,7 +250,7 @@ WebSocket features: auto-connect, token-based auth, automatic reconnection with 
 When multiple writers (users + agents) can race on the same entity:
 
 ```ts
-import { stampFor, ConflictError } from 'sure-state'
+import { stampFor, ConflictError } from '@shing.wong/sure-state'
 
 // Client side:
 const stamp = stampFor(existingPersona)
@@ -275,7 +275,7 @@ if (result.length === 0) throw new ConflictError('Persona')
 ## Token management
 
 ```ts
-import { createTokenManager } from 'sure-state'
+import { createTokenManager } from '@shing.wong/sure-state'
 
 const tokenManager = createTokenManager({
   getTokens:    () => authStore.getState().tokens,
@@ -297,7 +297,7 @@ Decodes JWTs to proactively refresh before expiry. Emits `onStatusChange` for au
 ## Event bus
 
 ```ts
-import { createEventBus } from 'sure-state'
+import { createEventBus } from '@shing.wong/sure-state'
 
 const bus = createEventBus()
 
@@ -320,7 +320,7 @@ bus.on('sync', ({ status }) => updateConnectionIndicator(status))
 Persist UI state, preferences, and theme selections across page reloads — no server endpoint needed. Every cookie change emits an `action` event visible through the event bus and agent tools.
 
 ```ts
-import { createCookieStore } from 'sure-state'
+import { createCookieStore } from '@shing.wong/sure-state'
 
 const prefs = createCookieStore({
   prefix: 'sure_',           // namespace your cookies
@@ -338,7 +338,7 @@ prefs.clear()                 // remove all prefixed cookies
 ### Sync entity store to cookies
 
 ```ts
-import { createEntityStore, createCookieStore, syncToCookie } from 'sure-state'
+import { createEntityStore, createCookieStore, syncToCookie } from '@shing.wong/sure-state'
 
 const store = createEntityStore({ name: 'preferences', api: { /* ... */ } })
 const cookies = createCookieStore({ prefix: 'sure_' })
@@ -381,7 +381,7 @@ stop()
 Zero-dependency password authentication for lightweight apps. Built on `crypto.scrypt` — no npm packages needed.
 
 ```ts
-import { createSimpleAuth } from 'sure-state'
+import { createSimpleAuth } from '@shing.wong/sure-state'
 
 const auth = createSimpleAuth({
   passwordPolicy: { minLength: 8, requireUpper: true, requireDigit: true },
@@ -399,7 +399,7 @@ await auth.logout(session.token)
 For production apps, implement `AuthAdapter` with any auth library (Auth.js, Lucia, Clerk):
 
 ```ts
-import type { AuthAdapter } from 'sure-state'
+import type { AuthAdapter } from '@shing.wong/sure-state'
 
 const adapter: AuthAdapter = {
   name: 'my-auth',
@@ -437,7 +437,7 @@ Auth events flow through the same event bus as store mutations:
 AI coding assistants (OpenCode, Claude Desktop, Cursor) can inspect and reason about your application state in real time:
 
 ```ts
-import { createEntityStore, createInspector, createAgentTools, createMcpServer } from 'sure-state'
+import { createEntityStore, createInspector, createAgentTools, createMcpServer } from '@shing.wong/sure-state'
 
 const personaStore = createEntityStore<Persona>({ name: 'persona', api: { /* ... */ } })
 const inspector = createInspector(personaStore)
@@ -547,7 +547,7 @@ OpenCode connects via MCP and calls `list_stores`, `get_store_state`, `get_actio
 ## Test utilities
 
 ```ts
-import { createMockApi, recordActions, waitForStore, createTestStore } from 'sure-state'
+import { createMockApi, recordActions, waitForStore, createTestStore } from '@shing.wong/sure-state'
 
 // Mock API backed by in-memory array
 const api = createMockApi([{ id: '1', name: 'Alice' }])

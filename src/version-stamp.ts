@@ -1,4 +1,4 @@
-import type { Versioned } from './types'
+import type { Versioned } from './types.js'
 
 /**
  * Extract the version number from an entity, defaulting to `0` if absent.

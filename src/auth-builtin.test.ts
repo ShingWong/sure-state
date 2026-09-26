@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { createSimpleAuth } from './auth-builtin'
+import { createSimpleAuth } from './auth-builtin.js'
 
 describe('createSimpleAuth', () => {
   it('registers a user and logs in', async () => {

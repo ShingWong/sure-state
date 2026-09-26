@@ -1,5 +1,5 @@
-import type { EntityStore } from './types'
-import type { AuthAdapter, Identity } from './auth-types'
+import type { EntityStore } from './types.js'
+import type { AuthAdapter, Identity } from './auth-types.js'
 
 export function withAuth<T extends { id: string }, TCreate = Partial<T>, TUpdate = Partial<T>>(
   store: EntityStore<T, TCreate, TUpdate>,

@@ -5,9 +5,9 @@
  *
  * Usage:
  * ```tsx
- * import { InspectorPanel } from 'sure-state/react-devtools'
+ * import { InspectorPanel } from '@shing.wong/sure-state/react-devtools'
  * import { personaStore } from './stores'
- * import { createInspector } from 'sure-state'
+ * import { createInspector } from '@shing.wong/sure-state'
  *
  * const personaInspector = createInspector(personaStore)
  *
@@ -22,7 +22,7 @@
  * ```
  */
 import { useEffect, useSyncExternalStore, useState, useCallback } from 'react'
-import type { Inspector } from './inspector'
+import type { Inspector } from './inspector.js'
 
 interface InspectorPanelProps {
   inspector: Inspector

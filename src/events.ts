@@ -13,7 +13,7 @@
  * | `push` | `PushEvent` | Server pushes an entity update |
  */
 
-import type { ActionRecord } from './inspector'
+import type { ActionRecord } from './inspector.js'
 
 export type StoreEventType = 'action' | 'error' | 'slow' | 'sync' | 'push'
 

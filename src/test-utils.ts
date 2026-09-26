@@ -9,7 +9,7 @@
  *
  * Usage:
  * ```ts
- * import { createEntityStore, createMockApi, recordActions } from 'sure-state'
+ * import { createEntityStore, createMockApi, recordActions } from '@shing.wong/sure-state'
  * import { describe, it, expect } from 'vitest'
  *
  * it('re-fetches after delete', async () => {
@@ -30,9 +30,9 @@
  * ```
  */
 
-import type { EntityApi, EntityStore } from './types'
-import type { ActionRecord } from './inspector'
-import { createEntityStore } from './create-entity-store'
+import type { EntityApi, EntityStore } from './types.js'
+import type { ActionRecord } from './inspector.js'
+import { createEntityStore } from './create-entity-store.js'
 
 export interface MockEntity {
   id: string

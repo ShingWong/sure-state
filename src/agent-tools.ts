@@ -1,6 +1,6 @@
-import type { EntityStore } from './types'
-import type { Inspector, InspectorReport } from './inspector'
-import type { MetricsCollector } from './instrumentation'
+import type { EntityStore } from './types.js'
+import type { Inspector, InspectorReport } from './inspector.js'
+import type { MetricsCollector } from './instrumentation.js'
 
 export interface AgentTool {
   name: string

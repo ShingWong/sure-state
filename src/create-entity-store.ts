@@ -3,7 +3,7 @@ import type {
   EntityStore,
   EntityStoreConfig,
   PushEvent,
-} from './types'
+} from './types.js'
 
 interface InternalState<T> {
   items: T[]

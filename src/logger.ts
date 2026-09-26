@@ -6,7 +6,7 @@
  *
  * Usage:
  * ```ts
- * import { createEntityStore, attachLogger } from 'sure-state'
+ * import { createEntityStore, attachLogger } from '@shing.wong/sure-state'
  *
  * const store = createEntityStore<Persona>({ name: 'persona', ... })
  * const detach = attachLogger(store, { collapsed: true })
@@ -16,7 +16,7 @@
  * ```
  */
 
-import type { EntityStore, MutationEvent } from './types'
+import type { EntityStore, MutationEvent } from './types.js'
 
 export interface LoggerOptions {
   /** Start with collapsed groups (default: true). */

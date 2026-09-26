@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
-import { createEntityStore } from './create-entity-store'
-import { createInspector } from './inspector'
+import { createEntityStore } from './create-entity-store.js'
+import { createInspector } from './inspector.js'
 
 interface Item {
   id: string

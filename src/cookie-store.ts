@@ -7,7 +7,7 @@
  *
  * Usage:
  * ```ts
- * import { createCookieStore } from 'sure-state'
+ * import { createCookieStore } from '@shing.wong/sure-state'
  *
  * const prefs = createCookieStore({
  *   prefix: 'sure_',
@@ -162,7 +162,7 @@ export function createCookieStore(options: CookieStoreOptions = {}): CookieStore
  *
  * Usage:
  * ```ts
- * import { createEntityStore, createCookieStore, syncToCookie } from 'sure-state'
+ * import { createEntityStore, createCookieStore, syncToCookie } from '@shing.wong/sure-state'
  *
  * const store = createEntityStore({ name: 'prefs', api: {...} })
  * const cookies = createCookieStore({ prefix: 'sure_' })

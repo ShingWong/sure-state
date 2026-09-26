@@ -7,7 +7,7 @@
  * - A `dump()` method for console inspection
  */
 
-import type { EntityStore, MutationEvent, SyncStrategy } from './types'
+import type { EntityStore, MutationEvent, SyncStrategy } from './types.js'
 
 export interface ActionRecord {
   id: string

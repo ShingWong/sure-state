@@ -4,7 +4,7 @@
  *
  * Usage:
  * ```ts
- * import { createEntityStore, createEventBus, prometheusMetrics } from 'sure-state'
+ * import { createEntityStore, createEventBus, prometheusMetrics } from '@shing.wong/sure-state'
  *
  * const bus = createEventBus()
  * const store = createEntityStore({ name: 'persona', ... })
@@ -17,8 +17,8 @@
  * ```
  */
 
-import type { StoreEventBus } from './events'
-import type { ActionRecord } from './inspector'
+import type { StoreEventBus } from './events.js'
+import type { ActionRecord } from './inspector.js'
 
 /**
  * Prometheus-style metrics collector.

@@ -17,7 +17,9 @@ const LEAK_PATTERNS: { regex: RegExp; label: string }[] = [
   { regex: /(?:ghp_|gho_|github_pat_)[a-zA-Z0-9_]{36,}/, label: 'GitHub token' },
   { regex: /-----BEGIN (?:RSA |EC )?PRIVATE KEY-----/, label: 'Private key' },
   { regex: /password\s*[:=]\s*['"][^'"]+['"]/i, label: 'Hardcoded password' },
-  { regex: /(?:info@|@\w+\.\w{2,})/, label: 'Email address' },
+  // Requires a non-empty local part before '@' so npm scoped package names
+  // (@shing.wong/…) and @handle.mentions are not mistaken for addresses.
+  { regex: /(?:info@|[\w.+-]+@[\w-]+\.[a-zA-Z]{2,})/, label: 'Email address' },
   { regex: /\/usr\/local\/devel\//, label: 'Internal filesystem path' },
   { regex: /(?:192\.168\.|10\.\d+\.|172\.(?:1[6-9]|2\d|3[01])\.)/, label: 'Internal IP address' },
 ]
@@ -41,6 +43,9 @@ function walk(dir: string) {
 
     const ext = extname(full)
     if (!['.ts', '.tsx', '.js', '.json', '.md', '.yml', '.yaml'].includes(ext)) continue
+
+    // Test files carry synthetic fixtures (fake passwords/emails) by design — not secrets.
+    if (entry.endsWith('.test.ts')) continue
 
     const content = readFileSync(full, 'utf-8')
     const lines = content.split('\n')

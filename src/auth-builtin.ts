@@ -1,5 +1,5 @@
 import { randomUUID, scryptSync, timingSafeEqual } from 'crypto'
-import type { Identity, Session, SessionStore, AuthAdapter, AuthEventType, AuthEventPayload } from './auth-types'
+import type { Identity, Session, SessionStore, AuthAdapter, AuthEventType, AuthEventPayload } from './auth-types.js'
 
 export interface SimpleAuthOptions {
   sessions?: {

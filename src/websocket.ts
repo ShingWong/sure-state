@@ -1,4 +1,4 @@
-import type { PushHandler, PushEvent } from './types'
+import type { PushHandler, PushEvent } from './types.js'
 
 /**
  * Options for `createWebSocketClient`.

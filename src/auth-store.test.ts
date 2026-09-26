@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
-import { withAuth } from './auth-store'
-import { createSimpleAuth } from './auth-builtin'
-import { createTestStore } from './test-utils'
+import { withAuth } from './auth-store.js'
+import { createSimpleAuth } from './auth-builtin.js'
+import { createTestStore } from './test-utils.js'
 
 describe('withAuth', () => {
   it('allows mutation when can() returns true', async () => {

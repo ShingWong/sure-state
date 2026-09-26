@@ -6,7 +6,7 @@
  *
  * Start it:
  * ```ts
- * import { createMcpServer } from 'sure-state'
+ * import { createMcpServer } from '@shing.wong/sure-state'
  * createMcpServer(tools)
  * ```
  *
@@ -16,7 +16,7 @@
  * ```
  */
 
-import type { AgentTool } from './agent-tools'
+import type { AgentTool } from './agent-tools.js'
 import type { Writable } from 'stream'
 import type { Interface } from 'readline'
 

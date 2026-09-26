@@ -1,12 +1,12 @@
 import { describe, it, expect, vi } from 'vitest'
-import { createEntityStore } from './create-entity-store'
-import { createInspector } from './inspector'
-import { createAgentTools } from './agent-tools'
-import { createMcpServer } from './create-mcp-server'
-import { type AgentTool } from './agent-tools'
+import { createEntityStore } from './create-entity-store.js'
+import { createInspector } from './inspector.js'
+import { createAgentTools } from './agent-tools.js'
+import { createMcpServer } from './create-mcp-server.js'
+import { type AgentTool } from './agent-tools.js'
 import { EventEmitter } from 'events'
 import { Writable } from 'stream'
-import type { EntityApi } from './types'
+import type { EntityApi } from './types.js'
 
 interface Item {
   id: string
