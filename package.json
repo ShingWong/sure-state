@@ -1,7 +1,7 @@
 {
   "name": "@shing.wong/sure-state",
   "version": "0.1.0",
-  "description": "Client-server state synchronization for TypeScript apps — server is always the source of truth.",
+  "description": "Client-server state synchronization for TypeScript apps \u2014 server is always the source of truth.",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -9,7 +9,7 @@
   "author": "ShingWong",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ShingWong/sure-state"
+    "url": "git+https://github.com/ShingWong/sure-state.git"
   },
   "type": "module",
   "main": "./dist/index.js",
