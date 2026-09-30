@@ -11,9 +11,9 @@ name: Publish
 # Authentication uses OIDC trusted publishing, so no npm token is stored in
 # this repository.
 #
-# Node is pinned to 22.21.0: trusted publishing needs Node >= 22.14.0, and
-# `npm stage publish` needs npm >= 11.15.0, which the npm bundled with 22.14.0
-# (10.x) does not provide.
+# `npm stage publish` needs npm >= 11.15.0, which the GitHub runner does not
+# ship, so the job upgrades npm first. Node is pinned to 22.21.0, comfortably
+# above the 22.14.0 floor that trusted publishing requires.
 
 on:
   push:
@@ -46,12 +46,24 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          # Node 22.14.0 is the documented floor for trusted publishing, but the
-          # npm it bundles (10.x) predates `npm stage`, which landed in npm
-          # 11.15.0. Pin 22.21.0, whose bundled npm understands the command.
           node-version: 22.21.0
           cache: npm
           registry-url: 'https://registry.npmjs.org'
+
+      # `npm stage publish` requires npm >= 11.15.0, but actions/setup-node does
+      # not install the npm bundled with the Node release — it uses the
+      # runner's own npm, which is 10.x. Upgrading is required for the command
+      # to exist at all; without this the step fails with:
+      #   Unknown command: "stage"
+      - name: Ensure npm supports staged publishing
+        run: |
+          npm --version
+          if ! npm stage --help >/dev/null 2>&1; then
+            echo "::notice::upgrading npm to 11 (runner ships 10.x, which predates npm stage)"
+            npm install -g 'npm@11'
+          fi
+          echo "npm now: $(npm --version)"
+          npm stage --help >/dev/null 2>&1 || { echo "::error::npm still lacks 'stage'"; exit 1; }
 
       - name: Detect version change
         id: detect
