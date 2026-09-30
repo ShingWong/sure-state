@@ -1,6 +1,6 @@
 {
   "name": "@shing.wong/sure-state",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Client-server state synchronization for TypeScript apps \u2014 server is always the source of truth.",
   "license": "MIT",
   "publishConfig": {
