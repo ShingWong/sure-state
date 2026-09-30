@@ -48,7 +48,12 @@ jobs:
         with:
           node-version: 22.21.0
           cache: npm
-          registry-url: 'https://registry.npmjs.org'
+          # `registry-url` is deliberately NOT set. It makes setup-node write a
+          # placeholder `//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}`
+          # with NODE_AUTH_TOKEN=XXXXX-… into the user npmrc. npm prefers that
+          # literal token over the OIDC exchange, so trusted publishing failed
+          # with E401. OIDC needs no npmrc entry; registry-url is only required
+          # for installing private dependencies, and this package has none.
 
       # `npm stage publish` requires npm >= 11.15.0, but actions/setup-node does
       # not install the npm bundled with the Node release — it uses the
