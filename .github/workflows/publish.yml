@@ -21,6 +21,13 @@ on:
     paths:
       - 'package.json'
 
+# Matches npm's documented trusted-publisher example. Notably id-token: write
+# lives at the workflow level, and caching is disabled because npm rewrites
+# _authToken during a release and a restored cache can pin a stale one.
+permissions:
+  id-token: write
+  contents: read
+
 concurrency:
   group: publish-${{ github.ref }}
   cancel-in-progress: false
@@ -31,29 +38,20 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
-    permissions:
-      # Required for the OIDC token exchange. Deliberately no contents:write —
-      # this job publishes nothing to the repository.
-      id-token: write
-      contents: read
-
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           # Full history so the previous version can be read from the parent
           # commit; fetch-depth 1 would not include it.
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
-          node-version: 22.21.0
-          cache: npm
-          # `registry-url` is deliberately NOT set. It makes setup-node write a
-          # placeholder `//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}`
-          # with NODE_AUTH_TOKEN=XXXXX-… into the user npmrc. npm prefers that
-          # literal token over the OIDC exchange, so trusted publishing failed
-          # with E401. OIDC needs no npmrc entry; registry-url is only required
-          # for installing private dependencies, and this package has none.
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          # npm's docs: never use caching in release builds. npm rewrites
+          # _authToken during a release, and a restored cache can pin a stale one.
+          package-manager-cache: false
 
       # `npm stage publish` requires npm >= 11.15.0, but actions/setup-node does
       # not install the npm bundled with the Node release — it uses the
