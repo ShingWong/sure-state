@@ -11,8 +11,9 @@ name: Publish
 # Authentication uses OIDC trusted publishing, so no npm token is stored in
 # this repository.
 #
-# Node is pinned to 22.14.0 because `npm stage publish` requires npm >= 11.15.0
-# and Node >= 22.14.0.
+# Node is pinned to 22.21.0: trusted publishing needs Node >= 22.14.0, and
+# `npm stage publish` needs npm >= 11.15.0, which the npm bundled with 22.14.0
+# (10.x) does not provide.
 
 on:
   push:
@@ -45,7 +46,10 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22.14.0
+          # Node 22.14.0 is the documented floor for trusted publishing, but the
+          # npm it bundles (10.x) predates `npm stage`, which landed in npm
+          # 11.15.0. Pin 22.21.0, whose bundled npm understands the command.
+          node-version: 22.21.0
           cache: npm
           registry-url: 'https://registry.npmjs.org'
 
