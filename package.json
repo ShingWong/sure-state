@@ -3,6 +3,7 @@
   "version": "0.1.7",
   "description": "Client-server state synchronization for TypeScript apps \u2014 server is always the source of truth.",
   "license": "MIT",
+  "engines": { "node": ">=20" },
   "publishConfig": {
     "access": "public"
   },
