@@ -25,6 +25,8 @@ export type {
   SyncStrategy,
   EntityStoreConfig,
   EntityApi,
+  EntityStoreState,
+  EntityStoreStore,
   PushEvent,
   PushHandler,
   MutationEvent,

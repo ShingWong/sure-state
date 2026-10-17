@@ -124,3 +124,26 @@ export interface Versioned {
   /** Monotonically increasing version number. */
   version: number
 }
+
+/**
+ * The reactive state behind an `EntityStore` — a plain object so it can be
+ * consumed directly (e.g. by React's `useSyncExternalStore`) without any
+ * framework or state library being installed.
+ */
+export interface EntityStoreState<T> {
+  items: T[]
+  isLoading: boolean
+  error: string | null
+  selectedId: string | null
+}
+
+/**
+ * The external-store surface `createEntityStore` returns alongside the
+ * entity API. Shaped like zustand's vanilla store (and `useSyncExternalStore`
+ * compatible) without depending on it.
+ */
+export interface EntityStoreStore<T> {
+  getState: () => T
+  setState: (partial: Partial<T> | ((state: T) => Partial<T>), replace?: boolean) => void
+  subscribe: (listener: (state: T, prevState: T) => void) => () => void
+}

@@ -10,7 +10,7 @@ export interface TokenPair {
 }
 
 export interface TokenManagerOptions {
-  /** Get the current token pair synchronously (e.g. from zustand store). */
+  /** Get the current token pair synchronously (e.g. from a token store). */
   getTokens: () => TokenPair | null
 
   /** Persist new tokens (called after a successful refresh). */

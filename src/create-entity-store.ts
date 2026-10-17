@@ -1,20 +1,9 @@
-import { createStore, type StoreApi } from 'zustand/vanilla'
-import type {
-  EntityStore,
-  EntityStoreConfig,
-  PushEvent,
-} from './types.js'
-
-interface InternalState<T> {
-  items: T[]
-  isLoading: boolean
-  error: string | null
-  selectedId: string | null
-}
+import { createStateStore } from './store.js'
+import type { EntityStore, EntityStoreConfig, EntityStoreState, EntityStoreStore, PushEvent } from './types.js'
 
 export function createEntityStore<T extends { id: string }, TCreate = Partial<T>, TUpdate = Partial<T>>(
   config: EntityStoreConfig<T, TCreate, TUpdate>,
-): EntityStore<T, TCreate, TUpdate> & Pick<StoreApi<InternalState<T>>, 'subscribe' | 'getState' | 'setState'> {
+): EntityStore<T, TCreate, TUpdate> & EntityStoreStore<EntityStoreState<T>> {
   const {
     name,
     sync = 'client-first',
@@ -25,7 +14,7 @@ export function createEntityStore<T extends { id: string }, TCreate = Partial<T>
     onMutate,
   } = config
 
-  const store = createStore<InternalState<T>>(() => ({
+  const store = createStateStore<EntityStoreState<T>>(() => ({
     items: [],
     isLoading: false,
     error: null,
