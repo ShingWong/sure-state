@@ -42,3 +42,28 @@ describe('runtime dependencies', () => {
     expect(pkg.peerDependenciesMeta?.react?.optional).toBe(true)
   })
 })
+
+describe('browser entry (@shing.wong/sure-state/core)', () => {
+  const read = (file: string) => readFileSync(join(here, file), 'utf8')
+
+  it('is exported from package.json', () => {
+    const exportsMap = (pkg as unknown as { exports?: Record<string, unknown> }).exports ?? {}
+    expect(Object.keys(exportsMap)).toContain('./core')
+  })
+
+  it('has no Node builtins in its module graph', () => {
+    // core.ts -> create-entity-store.ts -> store.ts / types.ts
+    const graph = ['core.ts', 'create-entity-store.ts', 'store.ts', 'types.ts']
+    const nodeImports = /from\s+['"](node:|readline|crypto|fs|path|os|child_process|worker_threads)/ 
+    const offenders = graph.filter((file) => nodeImports.test(read(file)))
+    expect(offenders).toEqual([])
+  })
+
+  it('re-exports only the store surface (no MCP/auth/cookie modules)', () => {
+    const text = read('core.ts')
+    expect(text).toContain('createEntityStore')
+    for (const exclusion of ['createMcpServer', 'createSimpleAuth', 'createCookieStore', 'createWebSocketClient']) {
+      expect(text).not.toContain(exclusion)
+    }
+  })
+})
