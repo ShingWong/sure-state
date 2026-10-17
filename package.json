@@ -1,6 +1,6 @@
 {
   "name": "@shing.wong/sure-state",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Client-server state synchronization for TypeScript apps \u2014 server is always the source of truth.",
   "license": "MIT",
   "engines": { "node": ">=20" },
@@ -40,8 +40,7 @@
     "prepublishOnly": "npm run security:check && npm run build"
   },
   "peerDependencies": {
-    "react": "^18.0.0 || ^19.0.0",
-    "zustand": "^4.5.0 || ^5.0.0"
+    "react": "^18.0.0 || ^19.0.0"
   },
   "peerDependenciesMeta": {
     "react": {
@@ -52,14 +51,13 @@
     "@types/node": "^26.1.1",
     "@types/react": "^19.2.17",
     "typescript": "^5.5.0",
-    "vitest": "^2.0.0",
-    "zustand": "^5.0.0"
+    "vitest": "^2.0.0"
   },
   "keywords": [
     "state-management",
     "client-server",
     "synchronization",
-    "zustand",
+    "framework-agnostic",
     "websocket",
     "optimistic-concurrency"
   ]

@@ -46,9 +46,9 @@ console.log(personaStore.isLoading)
 | OpenTelemetry | ✅ `attachOtelSpans` | ❌ | ❌ | ❌ |
 | Agent MCP tools | ✅ `createAgentTools` + `createMcpServer` | ❌ | ❌ | ❌ |
 | Test utilities | ✅ `createMockApi`, `recordActions`, `waitForStore` | ❌ | ✅ `QueryClient` mocking | ❌ |
-| Framework-agnostic | ✅ Zustand vanilla (React/Vue/Svelte/vanilla JS) | ✅ Same | ❌ React-only | ✅ Same |
+| Framework-agnostic | ✅ Plain external store (React/Vue/Svelte/vanilla JS) | ✅ Same | ❌ React-only | ✅ Same |
 | Optimistic concurrency | ✅ Version stamps | ❌ | ❌ | ❌ |
-| Bundle size | ~800 lines core | ~100 lines + zustand | ~25 KB | ~12 KB + RTK |
+| Bundle size | ~800 lines core, **zero runtime deps** | ~100 lines + zustand | ~25 KB | ~12 KB + RTK |
 
 ## Installation
 
@@ -56,12 +56,15 @@ console.log(personaStore.isLoading)
 npm install @shing.wong/sure-state
 ```
 
-Peer dependencies:
+Zero runtime dependencies. The only peer dependency is optional:
 
 ```bash
-npm install zustand                           # required (state engine)
 npm install react                             # optional (for InspectorPanel)
 ```
+
+The store is a plain external store (`getState`/`setState`/`subscribe`) with
+`useSyncExternalStore`-compatible semantics, so it works with any framework
+or none — no state library to install.
 
 ## Quick start
 
