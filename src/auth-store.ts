@@ -49,6 +49,18 @@ export function withAuth<T extends { id: string }, TCreate = Partial<T>, TUpdate
     return origUpdate(id, data)
   }
 
+  const origUpdateField = store.updateField.bind(store)
+  wrapped.updateField = async <K extends keyof T>(id: string, field: K, value: T[K]): Promise<T> => {
+    if (!await check('update', { id, [field]: value } as any)) {
+      const errStore = store as any
+      if (errStore.setState) {
+        errStore.setState({ error: 'Access denied: insufficient permissions', isLoading: false })
+      }
+      return undefined as unknown as T
+    }
+    return origUpdateField(id, field, value)
+  }
+
   const origDelete = store.delete.bind(store)
   wrapped.delete = async (id: string): Promise<void> => {
     if (!await check('delete', { id })) {

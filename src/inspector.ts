@@ -174,6 +174,19 @@ export function createInspector(store: EntityStore<any, any, any> & { getState?:
       }
     }
 
+    const origUpdateField = store.updateField.bind(store)
+    store.updateField = async (id: string, field: string | number | symbol, value: any) => {
+      const start = performance.now()
+      try {
+        const result = await origUpdateField(id, field, value)
+        record({ kind: 'update', entityName: 'entity', success: true, detail: `id=${id} ${String(field)}` }, start)
+        return result
+      } catch (e: any) {
+        record({ kind: 'error', entityName: 'entity', success: false, detail: e?.message }, start)
+        throw e
+      }
+    }
+
     const origDelete = store.delete.bind(store)
     store.delete = async (id: string) => {
       const start = performance.now()

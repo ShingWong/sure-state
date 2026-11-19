@@ -87,6 +87,7 @@ export function createWebSocketClient(options: WebSocketClientOptions): WebSocke
     const event: PushEvent<any> = {
       type: data.type ?? 'updated',
       entity: data.entity,
+      ...(data.field != null ? { field: data.field } : {}),
     }
 
     const entityHandlers = handlers.get(entityType)
