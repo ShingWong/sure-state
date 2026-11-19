@@ -1,5 +1,12 @@
 import { createStateStore } from './store.js'
-import type { EntityStore, EntityStoreConfig, EntityStoreState, EntityStoreStore, PushEvent } from './types.js'
+import type {
+  EntityStore,
+  EntityStoreConfig,
+  EntityStoreState,
+  EntityStoreStore,
+  MutationEvent,
+  PushEvent,
+} from './types.js'
 
 export function createEntityStore<T extends { id: string }, TCreate = Partial<T>, TUpdate = Partial<T>>(
   config: EntityStoreConfig<T, TCreate, TUpdate>,
@@ -10,9 +17,13 @@ export function createEntityStore<T extends { id: string }, TCreate = Partial<T>
     api,
     onSubscribe,
     versioning = false,
-    versionSelector = (e: any) => e?.version,
     onMutate,
   } = config
+
+  // The config type already allows number | string | undefined; the default
+  // needs an explicit cast because T is generic and has no known `version`.
+  const versionSelector: (entity: T) => number | string | undefined =
+    config.versionSelector ?? ((entity: T) => (entity as any)?.version)
 
   const store = createStateStore<EntityStoreState<T>>(() => ({
     items: [],
@@ -22,6 +33,8 @@ export function createEntityStore<T extends { id: string }, TCreate = Partial<T>
   }))
 
   let fetchGen = 0
+  /** Highest mutation generation started per entity. Stale replies are dropped. */
+  const mutationGens = new Map<string, number>()
 
   function setLoading() {
     store.setState({ isLoading: true, error: null })
@@ -33,6 +46,49 @@ export function createEntityStore<T extends { id: string }, TCreate = Partial<T>
 
   function pushItems(items: T[]) {
     store.setState({ items, isLoading: false })
+  }
+
+  /** Start a mutation and return its generation token. */
+  function beginMutation(id: string): number {
+    const gen = (mutationGens.get(id) ?? 0) + 1
+    mutationGens.set(id, gen)
+    return gen
+  }
+
+  /** True when `id` has since received a newer local mutation or push. */
+  function isSuperseded(id: string, gen: number): boolean {
+    return mutationGens.get(id) !== gen
+  }
+
+  function versionOf(entity: T | undefined): number | string | undefined {
+    if (!versioning || entity == null) return undefined
+    try {
+      return versionSelector(entity)
+    } catch {
+      return undefined
+    }
+  }
+
+  /**
+   * Reject an incoming entity whose version is older than the cached one.
+   * Only comparable values of the same type are fenced — mixed/unknown
+   * version types are left alone rather than guessed at.
+   */
+  function isStaleVersion(incoming: T, current: T): boolean {
+    const inVer = versionOf(incoming)
+    const curVer = versionOf(current)
+    if (inVer == null || curVer == null) return false
+    if (typeof inVer === 'number' && typeof curVer === 'number') return inVer < curVer
+    if (typeof inVer === 'string' && typeof curVer === 'string') return inVer < curVer
+    return false
+  }
+
+  function emit(event: MutationEvent<T>): void {
+    try {
+      onMutate?.(event)
+    } catch {
+      /* listener errors must not break store mutations */
+    }
   }
 
   /** Replace the local items list with fresh data from the server. */
@@ -79,7 +135,7 @@ export function createEntityStore<T extends { id: string }, TCreate = Partial<T>
         await fetch()
       }
 
-      try { onMutate?.({ kind: 'created', entity: created }) } catch { /* swallow */ }
+      emit({ kind: 'created', entity: created })
       return created
     } catch (err: any) {
       setError(err?.message ?? `Failed to create ${name}`)
@@ -88,23 +144,79 @@ export function createEntityStore<T extends { id: string }, TCreate = Partial<T>
   }
 
   async function update(id: string, data: TUpdate): Promise<T> {
+    const gen = beginMutation(id)
     setLoading()
     try {
       const updated = await api.update(id, data)
 
+      // A newer local mutation or push has already claimed this entity.
+      if (isSuperseded(id, gen)) return updated
+
       if (sync === 'client-first') {
         store.setState((s) => ({
-          items: s.items.map((item) => (item.id === id ? updated : item)),
+          items: s.items.map((item) => {
+            if (item.id !== id) return item
+            if (isStaleVersion(updated, item)) return item
+            return updated
+          }),
           isLoading: false,
         }))
       } else {
         await fetch()
       }
 
-      try { onMutate?.({ kind: 'updated', entity: updated }) } catch { /* swallow */ }
+      emit({ kind: 'updated', entity: updated })
       return updated
     } catch (err: any) {
-      setError(err?.message ?? `Failed to update ${name}`)
+      if (!isSuperseded(id, gen)) {
+        setError(err?.message ?? `Failed to update ${name}`)
+      }
+      throw err
+    }
+  }
+
+  /**
+   * Atomic single-field mutation. Only the mutated slot crosses the wire,
+   * and out-of-order responses are discarded via per-entity generations.
+   */
+  async function updateField<K extends keyof T>(id: string, field: K, value: T[K]): Promise<T> {
+    const currentEntity = store.getState().items.find((item) => item.id === id)
+    const expectedVersion = versionOf(currentEntity) // undefined when not versioning
+
+    const gen = beginMutation(id)
+    setLoading()
+    try {
+      let updated: T
+      if (config.updateField) {
+        updated = await config.updateField(id, field, value, expectedVersion)
+      } else if (api.updateField) {
+        updated = await api.updateField(id, field, value, expectedVersion)
+      } else {
+        // Scalar fallback — one slot, never a caller-supplied object spread.
+        updated = await api.update(id, { [field]: value } as unknown as TUpdate)
+      }
+
+      if (isSuperseded(id, gen)) return updated
+
+      if (sync === 'client-first') {
+        store.setState((s) => ({
+          items: s.items.map((item) => {
+            if (item.id !== id) return item
+            if (isStaleVersion(updated, item)) return item
+            return updated
+          }),
+          isLoading: false,
+        }))
+      } else {
+        await fetch()
+      }
+
+      emit({ kind: 'updated', entity: updated, field, value })
+      return updated
+    } catch (err: any) {
+      if (!isSuperseded(id, gen)) {
+        setError(err?.message ?? `Failed to update ${String(field)} on ${name}`)
+      }
       throw err
     }
   }
@@ -124,7 +236,7 @@ export function createEntityStore<T extends { id: string }, TCreate = Partial<T>
         await fetch()
       }
 
-      try { onMutate?.({ kind: 'deleted', id }) } catch { /* swallow */ }
+      emit({ kind: 'deleted', id })
     } catch (err: any) {
       setError(err?.message ?? `Failed to delete ${name}`)
       throw err
@@ -140,7 +252,16 @@ export function createEntityStore<T extends { id: string }, TCreate = Partial<T>
   }
 
   function applyPushEvent(event: PushEvent<T>) {
-    const { type, entity } = event
+    const { type, entity, field } = event
+
+    // A push is a newer authoritative transition: invalidate any local
+    // mutation still in flight for this entity. A deleted entity needs no
+    // generation entry afterwards (absence already reads as "superseded").
+    if (type === 'deleted') {
+      mutationGens.delete(entity.id)
+    } else {
+      beginMutation(entity.id)
+    }
 
     store.setState((s) => {
       switch (type) {
@@ -148,9 +269,11 @@ export function createEntityStore<T extends { id: string }, TCreate = Partial<T>
           return { items: [entity, ...s.items] }
         case 'updated':
           return {
-            items: s.items.map((item) =>
-              item.id === entity.id ? entity : item,
-            ),
+            items: s.items.map((item) => {
+              if (item.id !== entity.id) return item
+              if (isStaleVersion(entity, item)) return item
+              return entity
+            }),
           }
         case 'deleted':
           return {
@@ -163,10 +286,17 @@ export function createEntityStore<T extends { id: string }, TCreate = Partial<T>
       }
     })
 
-    onMutate?.({ kind: type, entity })
+    emit({
+      kind: type,
+      entity,
+      ...(field != null ? { field, value: (entity as any)[field] } : {}),
+    })
   }
 
   function reset() {
+    mutationGens.clear()
+    // Invalidate any in-flight fetch so it cannot repopulate a reset store.
+    fetchGen++
     store.setState({ items: [], isLoading: false, error: null, selectedId: null })
   }
 
@@ -192,6 +322,7 @@ export function createEntityStore<T extends { id: string }, TCreate = Partial<T>
     fetchById,
     create,
     update,
+    updateField,
     delete: del,
     select,
     clearError,

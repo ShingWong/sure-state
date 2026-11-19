@@ -28,6 +28,17 @@ export interface EntityStoreConfig<T, TCreate = Partial<T>, TUpdate = Partial<T>
   api: EntityApi<T, TCreate, TUpdate>
 
   /**
+   * Optional dedicated single-field endpoint, honoured before `api.updateField`.
+   * Provided for callers using the original field-mutation adapter shape.
+   */
+  updateField?: <K extends keyof T>(
+    id: string,
+    field: K,
+    value: T[K],
+    expectedVersion?: number | string,
+  ) => Promise<T>
+
+  /**
    * Subscribe to real-time push events for this entity type.
    * Called once when the store initialises. Return an unsubscribe function.
    */
@@ -35,8 +46,10 @@ export interface EntityStoreConfig<T, TCreate = Partial<T>, TUpdate = Partial<T>
 
   /**
    * Enable version-stamp optimistic concurrency control.
-   * When `true`, every write must include the entity's current `version`,
-   * and the server rejects writes where `version` is stale.
+   * When `true`, the store fences client-first writes and real-time pushes:
+   * an entity whose version is older than the cached one is discarded before
+   * it touches local state. `updateField` also passes the cached version to
+   * the API as `expectedVersion` when a dedicated endpoint is available.
    * @default false
    */
   versioning?: boolean
@@ -54,12 +67,23 @@ export interface EntityStoreConfig<T, TCreate = Partial<T>, TUpdate = Partial<T>
   onMutate?: (event: MutationEvent<T>) => void
 }
 
-/** API adapter the store calls for CRUD operations. */
+/** API adapter the store calls for CRUD and field-level operations. */
 export interface EntityApi<T, TCreate = Partial<T>, TUpdate = Partial<T>> {
   list: () => Promise<T[]>
   getById: (id: string) => Promise<T>
   create: (data: TCreate) => Promise<T>
   update: (id: string, data: TUpdate) => Promise<T>
+  /**
+   * Optional atomic single-field endpoint. When present, `updateField` uses it
+   * so only the mutated slot crosses the wire. Otherwise the store falls back
+   * to `update(id, { [field]: value })`.
+   */
+  updateField?: <K extends keyof T>(
+    id: string,
+    field: K,
+    value: T[K],
+    expectedVersion?: number | string,
+  ) => Promise<T>
   remove: (id: string) => Promise<void>
 }
 
@@ -67,6 +91,8 @@ export interface EntityApi<T, TCreate = Partial<T>, TUpdate = Partial<T>> {
 export interface PushEvent<T> {
   type: 'created' | 'updated' | 'deleted'
   entity: T
+  /** The single field that changed, when the push carries a discrete delta. */
+  field?: keyof T
 }
 
 /** Handler registered by the store to process incoming push events. */
@@ -77,6 +103,10 @@ export interface MutationEvent<T> {
   kind: 'created' | 'updated' | 'deleted'
   entity?: T
   id?: string
+  /** Set for field-level mutations so listeners get the exact delta. */
+  field?: keyof T
+  /** The new value of `field` (for field-level mutations). */
+  value?: unknown
 }
 
 /** Public interface of a store created by `createEntityStore`. */
@@ -99,6 +129,13 @@ export interface EntityStore<T, TCreate, TUpdate> {
 
   /** Update an entity on the server, then re-fetch the list. */
   update: (id: string, data: TUpdate) => Promise<T>
+
+  /**
+   * Atomically update a single field. Uses `api.updateField` when available,
+   * otherwise falls back to `api.update` with a one-slot payload.
+   * Out-of-order responses are discarded via per-entity mutation generations.
+   */
+  updateField: <K extends keyof T>(id: string, field: K, value: T[K]) => Promise<T>
 
   /** Delete an entity on the server, then re-fetch the list. */
   delete: (id: string) => Promise<void>

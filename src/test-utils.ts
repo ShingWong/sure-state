@@ -188,6 +188,19 @@ export function recordActions(store: EntityStore<any, any, any> & { __inspector_
     }
   }
 
+  const origUpdateField = store.updateField.bind(store)
+  store.updateField = async (id: string, field: string | number | symbol, value: any) => {
+    const start = performance.now()
+    try {
+      const r = await origUpdateField(id, field, value)
+      recorded.push({ kind: 'update', success: true, durationMs: Math.round(performance.now() - start), id: '', entityName: '', timestamp: 0, detail: String(field) })
+      return r
+    } catch (e: any) {
+      recorded.push({ kind: 'update', success: false, durationMs: Math.round(performance.now() - start), id: '', entityName: '', timestamp: 0, detail: e?.message })
+      throw e
+    }
+  }
+
   const origDelete = store.delete.bind(store)
   store.delete = async (id: string) => {
     const start = performance.now()

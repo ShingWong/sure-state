@@ -104,6 +104,18 @@ export function attachLogger(
     }
   }
 
+  const origUpdateField = store.updateField.bind(store)
+  store.updateField = async (id: string, field: string | number | symbol, value: any) => {
+    try {
+      const result = await origUpdateField(id, field, value)
+      log('update', `id=${id} ${String(field)}`)
+      return result
+    } catch (e) {
+      log('error', 'update')
+      throw e
+    }
+  }
+
   const origDelete = store.delete.bind(store)
   store.delete = async (id: string) => {
     try {
@@ -120,6 +132,7 @@ export function attachLogger(
     store.fetch = origFetch
     store.create = origCreate
     store.update = origUpdate
+    store.updateField = origUpdateField
     store.delete = origDelete
   }
 }
