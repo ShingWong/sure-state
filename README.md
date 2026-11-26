@@ -575,6 +575,6 @@ git clone git@github.com:ShingWong/sure-state.git
 cd sure-state
 npm install
 npm run build
-npm test                      # 27 tests
+npm test                      # 69 tests
 npm run lint                  # tsc --noEmit
 ```

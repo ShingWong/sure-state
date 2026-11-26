@@ -5,14 +5,14 @@
 Client-server state synchronization for TypeScript apps. Built on Zustand/vanilla. Server is always the source of truth.
 
 **GitHub:** `https://github.com/ShingWong/sure-state` (public)
-**npm:** `sure-state`
+**npm:** `@shing.wong/sure-state` (the unscoped `sure-state` is a different package)
 **context7 library ID:** `/shingwong/sure-state`
 
 ## Build & Test
 
 ```bash
 npm run build     # tsc
-npm test          # vitest run (27 tests)
+npm test          # vitest run (69 tests)
 npm run lint      # tsc --noEmit
 ```
 
@@ -42,8 +42,8 @@ npm run lint      # tsc --noEmit
 Use `createAgentTools` to generate tools any AI agent can call:
 
 ```ts
-import { createAgentTools, createMcpServer } from 'sure-state'
-import { createEntityStore, createInspector } from 'sure-state'
+import { createAgentTools, createMcpServer } from '@shing.wong/sure-state'
+import { createEntityStore, createInspector } from '@shing.wong/sure-state'
 
 const store = createEntityStore<Item>({ name: 'items', ... })
 const inspector = createInspector(store)
