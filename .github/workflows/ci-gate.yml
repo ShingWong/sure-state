@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later OR LicenseRef-Commercial
+# Project lextelligent
+name: Security gate
+
+# Public structural rules + private term list. Pinned by SHA.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    uses: ShingWong/sure-ci-gate/.github/workflows/security-gate.yml@ddce68a72779cafa951db710668846737cd49aaa
+    with:
+      gate-ref: ddce68a72779cafa951db710668846737cd49aaa
+    secrets:
+      denylist-token: ${{ secrets.SURE_SECURITY_TOKEN }}

@@ -1,0 +1,10 @@
+{
+  "allow": [
+    {
+      "file": "README.md",
+      "label": "Hardcoded password",
+      "match": "password: 'StrongPass1!'",
+      "reason": "documentation example password"
+    }
+  ]
+}
